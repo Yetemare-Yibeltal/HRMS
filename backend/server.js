@@ -40,6 +40,14 @@ app.get("/", (req, res) => {
 });
 
 // ─── API Routes ───────────────────────────────────────────────────────────────
+app.use('/api/auth',         require('./routes/authRoutes'))
+app.use('/api/departments',  require('./routes/departmentRoutes'))
+app.use('/api/positions',    require('./routes/positionRoutes'))
+app.use('/api/employees',    require('./routes/employeeRoutes'))
+app.use('/api/leaves',       require('./routes/leaveRoutes'))
+app.use('/api/attendance',   require('./routes/attendanceRoutes'))
+app.use('/api/payroll',      require('./routes/payrollRoutes'))
+app.use('/api/recruitment',  require('./routes/recruitmentRoutes'))
 app.use('/api/auth',        require('./routes/authRoutes'))
 app.use('/api/departments', require('./routes/departmentRoutes'))
 app.use('/api/positions',   require('./routes/positionRoutes'))
