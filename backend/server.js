@@ -45,7 +45,10 @@ app.get("/", (req, res) => {
 // app.use('/api/employees', require('./routes/employees'))
 // ... more routes added per module
 
-// ─── Global Error Handler ─────────────────────────────────────────────────────
+// ─── Global Error Handler 
+
+app.use("/api/auth", require("./routes/authRoutes"));
+// ─────────────────────────────────────────────────────
 app.use((err, req, res, next) => {
   const statusCode = err.statusCode || 500;
   console.error(`❌ Error: ${err.message}`);
