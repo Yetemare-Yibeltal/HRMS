@@ -18,56 +18,39 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: [true, "Password is required"],
       minlength: [6, "Password must be at least 6 characters"],
-      select: false, // never return password in queries by default
+      select: false,
     },
     role: {
       type: String,
-      enum: [
-        "super_admin", // full system access
-        "hr_manager", // manage all HR operations
-        "payroll_officer", // manage payroll only
-        "hod", // Head of Department
-        "employee", // self-service access
-      ],
+      enum: ["super_admin", "hr_manager", "payroll_officer", "hod", "employee"],
       default: "employee",
     },
     employee: {
-      // Link to the employee profile (null for super_admin)
       type: mongoose.Schema.Types.ObjectId,
       ref: "Employee",
       default: null,
     },
-    isActive: {
-      type: Boolean,
-      default: true,
-    },
-    lastLogin: {
-      type: Date,
-      default: null,
-    },
-    passwordChangedAt: {
-      type: Date,
-      default: null,
-    },
+    isActive: { type: Boolean, default: true },
+    lastLogin: { type: Date, default: null },
+    passwordChangedAt: { type: Date, default: null },
     passwordResetToken: { type: String, default: null },
     passwordResetExpires: { type: Date, default: null },
   },
-  {
-    timestamps: true,
-  },
+  { timestamps: true },
 );
 
 // ── Hash password before saving ───────────────────────────────────────────────
-userSchema.pre("save", async function (next) {
-  // Only hash if password field was actually modified
-  if (!this.isModified("password")) return next();
+// NOTE: No 'next' parameter — modern Mongoose handles async pre hooks
+// automatically when no next() is called. Just return the promise.
+userSchema.pre("save", async function () {
+  // Skip if password was not modified
+  if (!this.isModified("password")) return;
 
-  const salt = await bcrypt.genSalt(12); // 12 rounds = strong security
-  this.password = await bcrypt.hash(this.password, salt);
-  next();
+  // Hash password with 12 salt rounds
+  this.password = await bcrypt.hash(this.password, 12);
 });
 
-// ── Instance method: compare entered password with hashed ─────────────────────
+// ── Instance method: compare password ────────────────────────────────────────
 userSchema.methods.matchPassword = async function (enteredPassword) {
   return await bcrypt.compare(enteredPassword, this.password);
 };
