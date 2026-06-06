@@ -40,6 +40,10 @@ app.get("/", (req, res) => {
 });
 
 // ─── API Routes ───────────────────────────────────────────────────────────────
+app.use('/api/auth',        require('./routes/authRoutes'))
+app.use('/api/departments', require('./routes/departmentRoutes'))
+app.use('/api/positions',   require('./routes/positionRoutes'))
+app.use('/api/employees',   require('./routes/employeeRoutes'))
 app.use("/api/auth", require("./routes/authRoutes"));
 
 // ─── Global Error Handler ─────────────────────────────────────────────────────
