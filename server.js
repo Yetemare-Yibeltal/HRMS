@@ -1,8 +1,7 @@
 // server.js
 // Main entry point for the Injibara University HRMS backend.
-// Sets up Express, middleware, database connection, and all routes.
 
-require("dotenv").config(); // Load environment variables first
+require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const helmet = require("helmet");
@@ -16,22 +15,22 @@ const app = express();
 // ─── Connect to MongoDB ───────────────────────────────────────────────────────
 connectDB();
 
-// ─── Security & Utility Middleware ───────────────────────────────────────────
-app.use(helmet()); // Sets secure HTTP response headers
+// ─── Security & Utility Middleware ────────────────────────────────────────────
+app.use(helmet());
 app.use(
   cors({
     origin: process.env.CLIENT_URL || "http://localhost:5173",
-    credentials: true, // Allow cookies/auth headers
+    credentials: true,
   }),
 );
-app.use(morgan("dev")); // Log each HTTP request in development
-app.use(express.json()); // Parse JSON request bodies
-app.use(express.urlencoded({ extended: true })); // Parse form data
+app.use(morgan("dev"));
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
-// ─── Static Files (uploaded documents, profile photos) ───────────────────────
+// ─── Static Files ─────────────────────────────────────────────────────────────
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
-// ─── Health Check Route ───────────────────────────────────────────────────────
+// ─── Health Check ─────────────────────────────────────────────────────────────
 app.get("/", (req, res) => {
   res.json({
     success: true,
@@ -40,19 +39,45 @@ app.get("/", (req, res) => {
   });
 });
 
-// ─── API Routes (will be added as we build each module) ──────────────────────
-// app.use('/api/auth',      require('./routes/auth'))
-// app.use('/api/employees', require('./routes/employees'))
-// ... more routes added per module
+// ─── API Routes ───────────────────────────────────────────────────────────────
+app.use("/api/auth", require("./routes/authRoutes"));
 
 // ─── Global Error Handler ─────────────────────────────────────────────────────
+// IMPORTANT: must be defined AFTER all routes
 app.use((err, req, res, next) => {
-  const statusCode = err.statusCode || 500;
-  console.error(`❌ Error: ${err.message}`);
-  res.status(statusCode).json({
+  let error = { ...err };
+  error.message = err.message;
+
+  // Mongoose bad ObjectId
+  if (err.name === "CastError") {
+    error = { message: "Resource not found.", statusCode: 404 };
+  }
+
+  // Mongoose duplicate key
+  if (err.code === 11000) {
+    const field = Object.keys(err.keyValue)[0];
+    error = { message: `${field} already exists.`, statusCode: 400 };
+  }
+
+  // Mongoose validation error
+  if (err.name === "ValidationError") {
+    const message = Object.values(err.errors)
+      .map((e) => e.message)
+      .join(", ");
+    error = { message, statusCode: 400 };
+  }
+
+  // JWT errors
+  if (err.name === "JsonWebTokenError") {
+    error = { message: "Invalid token.", statusCode: 401 };
+  }
+  if (err.name === "TokenExpiredError") {
+    error = { message: "Token expired. Please log in again.", statusCode: 401 };
+  }
+
+  res.status(error.statusCode || 500).json({
     success: false,
-    message: err.message || "Internal Server Error",
-    // Show stack trace only in development
+    message: error.message || "Internal Server Error",
     stack: process.env.NODE_ENV === "development" ? err.stack : undefined,
   });
 });
