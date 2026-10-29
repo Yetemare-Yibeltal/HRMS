@@ -644,8 +644,8 @@ dist/
 | -------------------- | ------------------------------------------------ |
 | **Organization**     | Injibara University, Human Resource Office       |
 | **Location**         | Injibara Town, Awi Zone, Amhara Region, Ethiopia |
-| **Development team** | _add your name / team here_                      |
-| **Email**            | _add contact email here_                         |
+| **Development team** | HEROY Digital Soulution                    |
+| **Email**            | yebeltalyitayew25@gmail.com               |
 
 ---
 
